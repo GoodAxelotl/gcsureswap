@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - GC SureSwap</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        /* --- Greenish-White Theme --- */
+        :root {
+            --primary-green: #28a745;
+            --primary-green-dark: #218838;
+            --primary-blue-glow: rgba(13, 110, 253, 0.25);
+            --primary-blue: #0d6efd;
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --text-dark: #212529;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --success-color: #198754;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.7;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 1rem 5%;
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1400px; margin: 0 auto;
+        }
+
+        nav .logo { font-size: 1.8rem; font-weight: 700; color: var(--primary-green); text-decoration: none; }
+        nav .logo span { font-size: 1rem; color: var(--text-muted); font-weight: 500;}
+
+        /* --- Admin Page Layout --- */
+        .admin-wrapper { max-width: 1400px; margin: 2rem auto; padding: 0 1rem;}
+        
+        .admin-nav {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .admin-nav-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .admin-nav-item:hover {
+            color: var(--text-dark);
+        }
+        .admin-nav-item.active {
+            color: var(--primary-green);
+            border-bottom-color: var(--primary-green);
+        }
+
+        .admin-tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .admin-tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .admin-section {
+            background-color: var(--white); padding: 2rem; border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .admin-section h2 { margin-bottom: 1.5rem; font-size: 1.8rem; text-align: center; }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        .data-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: center; 
+        }
+        .data-table th, .data-table td { padding: 0.75rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .data-table th { font-weight: 600; }
+        
+        .data-table input, .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; 
+            padding: 0.75rem; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .data-table input:focus, .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+            outline: none; 
+            border-color: var(--primary-blue); 
+            box-shadow: 0 0 0 4px var(--primary-blue-glow);
+        }
+        
+        .btn { padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s ease; white-space: nowrap; }
+        .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+        .btn-primary { background-color: var(--primary-green); color: var(--white); }
+        .btn-success { background-color: var(--success-color); color: var(--white); }
+        .btn-danger { background-color: var(--danger-color); color: var(--white); }
+        .btn-secondary { background-color: var(--secondary-color); color: var(--white); }
+        .btn-warning { background-color: var(--warning-color); color: var(--text-dark); }
+        
+        #add-payout-form { display: flex; gap: 1rem; align-items: flex-end; margin-top: 1.5rem; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 150px; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .actions { display: flex; gap: 0.5rem; justify-content: center; }
+        
+        #auth-guard { display: none; text-align: center; padding: 4rem; }
+        #auth-guard.visible { display: block; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal-content {
+            background-color: var(--white); padding: 2rem; border-radius: 12px;
+            width: 90%; max-width: 500px; position: relative;
+        }
+        .modal-close { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+        .modal-content h2 { margin-bottom: 1.5rem; }
+        #deny-other-reason, #deny-refund-options { display: none; margin-top: 1rem; }
+        #deny-refund-options label { display: block; margin-bottom: 0.5rem; }
+        
+        .brand-group-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            background-color: var(--bg-light);
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">GC SureSwap <span>Admin Panel</span></a>
+            <button id="logout-button" class="btn btn-danger">Logout</button>
+        </nav>
+    </header>
+
+    <main id="admin-content" style="display:none;">
+        <div class="admin-wrapper">
+            <div class="admin-nav">
+                <div class="admin-nav-item active" data-tab="payout-rules">Manage Payouts</div>
+                <div class="admin-nav-item" data-tab="payout-requests">Payout Requests</div>
+                <div class="admin-nav-item" data-tab="pending-listings">Pending Listings</div>
+                <div class="admin-nav-item" data-tab="denied-listings">Denied Listings</div>
+                <div class="admin-nav-item" data-tab="processed-listings">Processed Listings</div>
+            </div>
+
+            <div id="payout-rules" class="admin-tab-content active">
+                <section class="admin-section">
+                    <h2>Manage Item Payouts</h2>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead><tr><th>Card Value</th><th>Payout Amount (₹)</th><th>Actions</th></tr></thead>
+                            <tbody id="payouts-table-body"></tbody>
+                        </table>
+                    </div>
+                    <form id="add-payout-form">
+                        <div class="form-group"><label for="new-brand-name">Brand Name</label><input type="text" id="new-brand-name" required></div>
+                        <div class="form-group"><label for="new-card-value">Card Value</label><input type="text" id="new-card-value" placeholder="e.g., $10 Gift Card" required></div>
+                        <div class="form-group"><label for="new-payout-amount">Payout Amount (₹)</label><input type="number" step="0.01" min="0" id="new-payout-amount" required></div>
+                        <button type="submit" class="btn btn-primary">Add Rule</button>
+                    </form>
+                </section>
+            </div>
+
+            <div id="payout-requests" class="admin-tab-content">
+                <section class="admin-section">
+                    <h2>Pending Payout Requests</h2>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead><tr><th>User ID</th><th>Amount</th><th>Method</th><th>Details</th><th>Transaction ID / Code</th><th>Action</th></tr></thead>
+                            <tbody id="payout-requests-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+            
+             <div id="pending-listings" class="admin-tab-content">
+                <section class="admin-section">
+                    <h2>Pending Listings for Review</h2>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead><tr><th>Seller ID</th><th>Brand</th><th>Value</th><th>Code</th><th>PIN</th><th>Actions</th></tr></thead>
+                            <tbody id="pending-listings-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div id="denied-listings" class="admin-tab-content">
+                <section class="admin-section">
+                    <h2>Denied Listings</h2>
+                     <div class="table-container">
+                        <table class="data-table">
+                            <thead><tr><th>Seller ID</th><th>Brand</th><th>Value</th><th>Denied On</th><th>Actions</th></tr></thead>
+                            <tbody id="denied-listings-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div id="processed-listings" class="admin-tab-content">
+                <section class="admin-section">
+                    <h2>Processed Listings & Payouts</h2>
+                     <div class="table-container">
+                        <table class="data-table">
+                            <thead><tr><th>Seller ID</th><th>Brand</th><th>Value</th><th>Payout</th><th>Status</th></tr></thead>
+                            <tbody id="processed-listings-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="table-container" style="margin-top: 2rem;">
+                        <table class="data-table">
+                             <thead><tr><th>User ID</th><th>Amount</th><th>Method</th><th>Status</th><th>Processed By</th><th>Tx ID / Code</th></tr></thead>
+                            <tbody id="processed-payouts-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+    
+    <div id="auth-guard"><h2>Access Denied</h2><p>You do not have permission to view this page. Redirecting...</p></div>
+
+    <div id="deny-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="deny-modal-close" class="modal-close">&times;</span>
+            <h2>Deny Payout Request</h2>
+            <form id="deny-payout-form">
+                <input type="hidden" id="deny-request-id">
+                <div class="form-group"><label for="deny-reason">Reason for Denial</label><select id="deny-reason" class="form-control" required><option value="" disabled selected>Select a reason...</option><option value="Invalid Details">Invalid Payout Details (Refunds User)</option><option value="Suspicious Activity">Suspicious Activity (Forfeits Amount)</option><option value="Other">Other</option></select></div>
+                <div id="deny-other-reason" class="form-group"><label for="deny-custom-reason">Please Specify Reason</label><textarea id="deny-custom-reason" rows="3" class="form-control"></textarea></div>
+                <div id="deny-refund-options" class="form-group"><label>Action for "Other"</label><label><input type="radio" name="other-action" value="refund" checked> Refund</label><label><input type="radio" name="other-action" value="forfeit"> Forfeit</label></div>
+                <button type="submit" class="btn btn-danger">Confirm Denial</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, getDoc, runTransaction, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAObauxCc_XDxvK9ywwZDckDsOKbstx_Hc",
+            authDomain: "gcsurswap.firebaseapp.com",
+            projectId: "gcsurswap",
+            storageBucket: "gcsurswap.firebasestorage.app",
+            messagingSenderId: "655387200583",
+            appId: "1:655387200583:web:223a2a98e89f72306ff562"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let adminUsername = 'Admin';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDocRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists() && docSnap.data().isAdmin === true) {
+                    adminUsername = docSnap.data().username || 'Admin'; 
+                    document.getElementById('admin-content').style.display = 'block';
+                    initializeAdminPanel();
+                } else { showAccessDenied(); }
+            } else { showAccessDenied(); }
+        });
+
+        function showAccessDenied() {
+            document.getElementById('auth-guard').style.display = 'block';
+            setTimeout(() => { window.location.href = 'index.html'; }, 3000);
+        }
+        
+        function initializeAdminPanel() {
+            const tabs = document.querySelectorAll('.admin-nav-item');
+            const contents = document.querySelectorAll('.admin-tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    contents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+            handlePayoutRules();
+            listenForListings();
+            listenForPayoutRequests();
+        }
+        
+        function handlePayoutRules() {
+            const payoutsCollection = collection(db, 'payout_rules');
+            const payoutsTableBody = document.getElementById('payouts-table-body');
+            
+            onSnapshot(payoutsCollection, snapshot => {
+                const rulesByBrand = {};
+                snapshot.forEach(doc => {
+                    const rule = { id: doc.id, ...doc.data() };
+                    if (!rulesByBrand[rule.brandName]) {
+                        rulesByBrand[rule.brandName] = [];
+                    }
+                    rulesByBrand[rule.brandName].push(rule);
+                });
+
+                payoutsTableBody.innerHTML = '';
+                for (const brandName in rulesByBrand) {
+                    const brandHeaderRow = `<tr><td colspan="3" class="brand-group-header">${brandName}</td></tr>`;
+                    payoutsTableBody.innerHTML += brandHeaderRow;
+
+                    rulesByBrand[brandName].forEach(rule => {
+                        const row = document.createElement('tr');
+                        row.dataset.id = rule.id;
+                        row.innerHTML = `<td>${rule.cardValue}</td><td>₹${rule.payoutAmount.toFixed(2)}</td><td class="actions"><button class="btn btn-primary edit-payout-btn">Edit</button><button class="btn btn-danger delete-payout-btn">Delete</button></td>`;
+                        payoutsTableBody.appendChild(row);
+                    });
+                }
+            });
+
+            document.getElementById('add-payout-form').addEventListener('submit', async e => {
+                e.preventDefault();
+                const brandName = document.getElementById('new-brand-name').value;
+                const cardValue = document.getElementById('new-card-value').value;
+                const payoutAmount = parseFloat(document.getElementById('new-payout-amount').value);
+                await addDoc(payoutsCollection, { brandName, cardValue, payoutAmount });
+                e.target.reset();
+            });
+            
+            payoutsTableBody.addEventListener('click', async e => {
+                const target = e.target;
+                const row = target.closest('tr');
+                if (!row || !row.dataset.id) return;
+                const docId = row.dataset.id;
+
+                if (target.classList.contains('delete-payout-btn')) {
+                    if(confirm('Are you sure?')) { await deleteDoc(doc(db, 'payout_rules', docId)); }
+                }
+
+                if (target.classList.contains('edit-payout-btn')) {
+                    const cells = row.querySelectorAll('td');
+                    row.dataset.originalValue = cells[0].textContent;
+                    row.dataset.originalPayout = cells[1].textContent.replace('₹', '');
+                    // For Brand grouped view, we need the brand name from the header
+                    let currentBrand = row.previousElementSibling;
+                    while(currentBrand && !currentBrand.querySelector('.brand-group-header')) {
+                        currentBrand = currentBrand.previousElementSibling;
+                    }
+                    row.dataset.originalBrand = currentBrand ? currentBrand.textContent : 'Unknown';
+
+                    cells[0].innerHTML = `<input type="text" value="${row.dataset.originalValue}">`;
+                    cells[1].innerHTML = `<input type="number" step="0.01" value="${row.dataset.originalPayout}">`;
+                    cells[2].innerHTML = `<div class="actions"><button class="btn btn-success save-payout-btn">Save</button><button class="btn btn-secondary cancel-payout-btn">Cancel</button></div>`;
+                }
+
+                if (target.classList.contains('cancel-payout-btn')) {
+                     row.innerHTML = `<td>${row.dataset.originalValue}</td><td>₹${parseFloat(row.dataset.originalPayout).toFixed(2)}</td><td class="actions"><button class="btn btn-primary edit-payout-btn">Edit</button><button class="btn btn-danger delete-payout-btn">Delete</button></td>`;
+                }
+                
+                if (target.classList.contains('save-payout-btn')) {
+                    const inputs = row.querySelectorAll('input');
+                    const updatedData = {
+                        cardValue: inputs[0].value,
+                        payoutAmount: parseFloat(inputs[1].value)
+                    };
+                    await updateDoc(doc(db, 'payout_rules', docId), updatedData);
+                    alert('Rule saved successfully!');
+                }
+            });
+        }
+
+        function listenForListings() {
+            const listingsCollection = collection(db, 'listings');
+            const pendingBody = document.getElementById('pending-listings-body');
+            const processedBody = document.getElementById('processed-listings-body');
+            const deniedBody = document.getElementById('denied-listings-body');
+
+            onSnapshot(listingsCollection, snapshot => {
+                pendingBody.innerHTML = ''; processedBody.innerHTML = ''; deniedBody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const listing = doc.data();
+                    let rowHtml;
+                    const sellerIdShort = listing.sellerId.substring(0, 8);
+                    if (listing.status === 'Pending') {
+                        rowHtml = `<tr data-id="${doc.id}"><td>${sellerIdShort}...</td><td>${listing.brand}</td><td>${listing.value}</td><td>${listing.giftCode}</td><td>${listing.pin || 'N/A'}</td><td class="actions"><button class="btn btn-success approve-btn" data-id="${doc.id}">Approve</button><button class="btn btn-danger deny-btn" data-id="${doc.id}">Deny</button></td></tr>`;
+                        pendingBody.innerHTML += rowHtml;
+                    } else if (listing.status === 'Denied') {
+                        const deniedDate = listing.deniedAt ? listing.deniedAt.toDate().toLocaleDateString() : 'N/A';
+                        rowHtml = `<tr data-id="${doc.id}"><td>${sellerIdShort}...</td><td>${listing.brand}</td><td>${listing.value}</td><td>${deniedDate}</td><td class="actions"><button class="btn btn-warning re-approve-btn" data-id="${doc.id}">Re-Approve</button><button class="btn btn-danger delete-listing-btn" data-id="${doc.id}">Delete</button></td></tr>`;
+                        deniedBody.innerHTML += rowHtml;
+                    } else { 
+                         rowHtml = `<tr data-id="${doc.id}"><td>${sellerIdShort}...</td><td>${listing.brand}</td><td>${listing.value}</td><td>₹${(listing.estimatedEarnings || 0).toFixed(2)}</td><td>${listing.status}</td></tr>`;
+                        processedBody.innerHTML += rowHtml;
+                    }
+                });
+            });
+            
+            pendingBody.addEventListener('click', async e => {
+                const target = e.target; const listingId = target.dataset.id; if (!listingId) return;
+                const listingRef = doc(db, 'listings', listingId);
+                if(target.classList.contains('approve-btn')) {
+                    try {
+                        await runTransaction(db, async (t) => {
+                            const listingSnap = await t.get(listingRef); const listingData = listingSnap.data();
+                            const userRef = doc(db, 'users', listingData.sellerId); const userSnap = await t.get(userRef);
+                            const newBalance = (userSnap.data().balance || 0) + listingData.estimatedEarnings;
+                            t.update(userRef, { balance: newBalance });
+                            t.update(listingRef, { status: 'Approved', processedBy: adminUsername });
+                        });
+                        alert('Listing approved! User credited.');
+                    } catch (error) { alert('Approval failed.'); console.error(error); }
+                }
+                if(target.classList.contains('deny-btn')) {
+                    await updateDoc(listingRef, { status: 'Denied', deniedAt: serverTimestamp(), processedBy: adminUsername });
+                    alert('Listing denied.');
+                }
+            });
+
+            deniedBody.addEventListener('click', async e => {
+                const target = e.target; const listingId = target.dataset.id; if (!listingId) return;
+                const listingRef = doc(db, 'listings', listingId);
+                if(target.classList.contains('delete-listing-btn')) {
+                    if(confirm('Are you sure?')) { await deleteDoc(listingRef); alert('Listing deleted.'); }
+                }
+                 if(target.classList.contains('re-approve-btn')) {
+                    if(confirm('Move back to Pending?')) { await updateDoc(listingRef, { status: 'Pending' }); alert('Listing moved to pending.'); }
+                }
+             });
+        }
+        
+        function listenForPayoutRequests() {
+            const payoutRequestsBody = document.getElementById('payout-requests-body');
+            const processedPayoutsBody = document.getElementById('processed-payouts-body');
+            const payoutRequestsQuery = query(collection(db, 'payout_requests'));
+            
+            onSnapshot(payoutRequestsQuery, snapshot => {
+                payoutRequestsBody.innerHTML = '';
+                processedPayoutsBody.innerHTML = '';
+                if(snapshot.empty) {
+                    payoutRequestsBody.innerHTML = '<tr><td colspan="6">No pending payout requests.</td></tr>';
+                }
+                snapshot.forEach(docSnap => {
+                    const request = docSnap.data();
+                    const detailsText = request.method === 'Amazon GC' ? request.details.amazonEmail : request.details.cryptoAddress;
+                    const txPlaceholder = request.method === 'Amazon GC' ? 'Paste Amazon GC Code' : 'Paste Crypto Tx ID';
+                    let rowHtml;
+
+                    if(request.status === 'Pending') {
+                        rowHtml = `<tr data-id="${docSnap.id}"><td>${request.userId.substring(0, 8)}...</td><td>₹${request.amount.toFixed(2)}</td><td>${request.method}</td><td>${detailsText}</td><td><input type="text" class="transaction-id" placeholder="${txPlaceholder}"></td><td class="actions"><button class="btn btn-success mark-paid-btn">Mark Paid</button><button class="btn btn-danger deny-payout-btn">Deny</button></td></tr>`;
+                        payoutRequestsBody.innerHTML += rowHtml;
+                    } else { 
+                         rowHtml = `<tr data-id="${docSnap.id}"><td>${request.userId.substring(0, 8)}...</td><td>₹${request.amount.toFixed(2)}</td><td>${request.method}</td><td>${request.status}</td><td>${request.processedBy || 'N/A'}</td><td>${request.transactionId || 'N/A'}</td></tr>`;
+                        processedPayoutsBody.innerHTML += rowHtml;
+                    }
+                });
+            });
+
+            payoutRequestsBody.addEventListener('click', async e => {
+                const target = e.target; const row = target.closest('tr'); if (!row) return;
+                const docId = row.dataset.id;
+                
+                if(target.classList.contains('mark-paid-btn')) {
+                    const transactionId = row.querySelector('.transaction-id').value;
+                    if(!transactionId) { alert('Please enter a Transaction ID or Gift Card Code.'); return; }
+                    if(confirm('Mark as completed?')) {
+                        await updateDoc(doc(db, 'payout_requests', docId), {
+                            status: 'Completed', transactionId: transactionId, processedBy: adminUsername, completedAt: serverTimestamp()
+                        });
+                        alert('Payout marked as completed!');
+                    }
+                }
+                if(target.classList.contains('deny-payout-btn')) {
+                    document.getElementById('deny-request-id').value = docId;
+                    document.getElementById('deny-modal').classList.add('visible');
+                }
+            });
+        }
+        
+        const denyModal = document.getElementById('deny-modal');
+        denyModal.querySelector('#deny-modal-close').addEventListener('click', () => denyModal.classList.remove('visible'));
+        document.getElementById('deny-reason').addEventListener('change', e => {
+            document.getElementById('deny-other-reason').style.display = e.target.value === 'Other' ? 'block' : 'none';
+            document.getElementById('deny-refund-options').style.display = e.target.value === 'Other' ? 'block' : 'none';
+        });
+        
+        document.getElementById('deny-payout-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const requestId = document.getElementById('deny-request-id').value;
+            const reason = document.getElementById('deny-reason').value;
+            if (!requestId || !reason) return;
+
+            const requestRef = doc(db, 'payout_requests', requestId);
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const requestSnap = await transaction.get(requestRef);
+                    if (!requestSnap.exists()) { throw "Request not found."; }
+                    const requestData = requestSnap.data();
+                    let finalReason = reason; let shouldRefund = false;
+                    if (reason === 'Invalid Details') {
+                        shouldRefund = true;
+                    } else if (reason === 'Other') {
+                        const customReason = document.getElementById('deny-custom-reason').value;
+                        if (!customReason) { throw "Please specify a reason for 'Other'."; }
+                        finalReason = `Other: ${customReason}`;
+                        shouldRefund = document.querySelector('input[name="other-action"]:checked').value === 'refund';
+                    }
+                    if (shouldRefund) {
+                        const userRef = doc(db, 'users', requestData.userId);
+                        const userSnap = await transaction.get(userRef);
+                        const newBalance = (userSnap.data().balance || 0) + requestData.amount;
+                        transaction.update(userRef, { balance: newBalance });
+                    }
+                    transaction.update(requestRef, {
+                        status: 'Denied', denialReason: finalReason, refunded: shouldRefund,
+                        processedBy: adminUsername, completedAt: serverTimestamp()
+                    });
+                });
+                alert('Payout request has been successfully denied.');
+                denyModal.classList.remove('visible');
+                e.target.reset();
+            } catch(error) {
+                alert(`Error: ${error.message}`);
+                console.error("Denial failed: ", error);
+            }
+        });
+        
+        document.getElementById('logout-button').addEventListener('click', () => { signOut(auth); });
+    </script>
+</body>
+</html>

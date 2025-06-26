@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Register - GC SureSwap</title>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        /* --- Greenish-White Color Palette & Design --- */
+        :root {
+            --primary-green: #28a745;
+            --primary-green-dark: #218838;
+            --primary-blue-glow: rgba(40, 167, 69, 0.2);
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --text-dark: #212529;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --danger-color: #dc3545;
+            --success-color: #198754;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #bubble-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* --- Main Authentication Container --- */
+        .auth-container {
+            background-color: var(--white);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            z-index: 1;
+            border: 1px solid var(--border-color);
+        }
+
+        .auth-container .logo-link {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            margin-bottom: 2rem;
+        }
+        .auth-container .logo-link img { height: 40px; }
+        .auth-container .logo-link span { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); }
+        
+
+        .auth-container h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        
+        /* --- Form Styling --- */
+        .form-group {
+            text-align: left;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group label small {
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px var(--primary-blue-glow);
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn:disabled {
+            background-image: none;
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-image: linear-gradient(45deg, var(--primary-green), var(--primary-green-dark));
+            color: var(--white);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.25rem;
+        }
+        .btn-secondary:hover {
+            background-color: var(--bg-light);
+        }
+
+        .btn-google {
+            background-color: var(--white);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .btn-google:hover {
+            background-color: var(--bg-light);
+        }
+        
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* --- Divider & Toggle --- */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--text-muted);
+        }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
+        .divider:not(:empty)::before { margin-right: .25em; }
+        .divider:not(:empty)::after { margin-left: .25em; }
+
+        .toggle-auth {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .toggle-auth a, #resend-verification {
+            color: var(--primary-green);
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .toggle-auth a:hover, #resend-verification:hover {
+            text-decoration: underline;
+            color: var(--primary-green-dark);
+        }
+
+        /* --- Messages --- */
+        #message {
+            margin-top: 1rem;
+            font-weight: 500;
+            min-height: 24px;
+            line-height: 1.4;
+        }
+        
+        #message.success { color: var(--success-color); }
+        #message.error { color: var(--danger-color); }
+        
+        #register-form { display: none; }
+        #email-form-group { display: none; }
+
+    </style>
+</head>
+<body>
+    <canvas id="bubble-canvas"></canvas>
+
+    <div class="auth-container">
+        <a href="index.html" class="logo-link">
+            <img src="a_fc26178f3f4bdc82d62c0369a2e3e0e1.gif" alt="GC SureSwap Logo">
+            <span>GC SureSwap</span>
+        </a>
+        
+        <form id="login-form">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="login-identifier">Username or Email</label>
+                <input type="text" id="login-identifier" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+
+        <form id="register-form">
+            <h2>Create Your Account</h2>
+            <div class="form-group">
+                <label for="register-username">Username</label>
+                <input type="text" id="register-username" required>
+            </div>
+            <div class="form-group">
+                <label for="register-password">Password</label>
+                <input type="password" id="register-password" required>
+            </div>
+            <div class="form-group">
+                <label for="register-confirm-password">Confirm Password</label>
+                <input type="password" id="register-confirm-password" required>
+            </div>
+            
+            <button type="button" id="add-email-btn" class="btn btn-secondary">Add Email for Security (Optional)</button>
+            
+            <div class="form-group" id="email-form-group">
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email">
+            </div>
+
+            <button type="submit" id="register-submit-btn" class="btn btn-primary">Create Account</button>
+        </form>
+        
+        <p id="message"></p>
+        
+        <div class="divider">OR</div>
+
+        <button id="google-signin" class="btn btn-google">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo">
+            Sign in with Google
+        </button>
+
+        <p class="toggle-auth">
+            <span id="to-register">Don't have an account? <a id="show-register">Sign Up</a></span>
+            <span id="to-login" style="display:none;">Already have an account? <a id="show-login">Log In</a></span>
+        </p>
+
+    </div>
+
+    <!-- Firebase SDK Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            signInWithPopup,
+            sendEmailVerification,
+            updateProfile,
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAObauxCc_XDxvK9ywwZDckDsOKbstx_Hc",
+            authDomain: "gcsurswap.firebaseapp.com",
+            projectId: "gcsurswap",
+            storageBucket: "gcsurswap.firebasestorage.app",
+            messagingSenderId: "655387200583",
+            appId: "1:655387200583:web:223a2a98e89f72306ff562"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const googleSigninBtn = document.getElementById('google-signin');
+        const messageEl = document.getElementById('message');
+        const showRegisterLink = document.getElementById('show-register');
+        const showLoginLink = document.getElementById('show-login');
+        const toRegisterText = document.getElementById('to-register');
+        const toLoginText = document.getElementById('to-login');
+        const addEmailBtn = document.getElementById('add-email-btn');
+        const emailFormGroup = document.getElementById('email-form-group');
+        
+        let currentUserForResend = null;
+
+        const onNextAuth = () => new Promise(resolve => {
+            const unsub = onAuthStateChanged(auth, user => {
+                unsub();
+                resolve(user);
+            });
+        });
+
+        function toggleForms(show) {
+            if(show === 'register') {
+                loginForm.style.display = 'none'; toRegisterText.style.display = 'none';
+                registerForm.style.display = 'block'; toLoginText.style.display = 'block';
+            } else {
+                loginForm.style.display = 'block'; toLoginText.style.display = 'none';
+                registerForm.style.display = 'none'; toRegisterText.style.display = 'block';
+            }
+            setMessage('', 'error');
+        }
+
+        showRegisterLink.addEventListener('click', () => toggleForms('register'));
+        showLoginLink.addEventListener('click', () => toggleForms('login'));
+        
+        addEmailBtn.addEventListener('click', () => {
+            emailFormGroup.style.display = 'block';
+            addEmailBtn.style.display = 'none';
+            document.getElementById('register-email').focus();
+        });
+        
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('register-submit-btn');
+            const username = document.getElementById('register-username').value.trim().toLowerCase(); 
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            
+            setMessage('', 'error');
+            submitBtn.disabled = true;
+
+            if (username.length <= 3) {
+                setMessage('Username must be more than 3 characters.', 'error');
+                submitBtn.disabled = false; return;
+            }
+            if (password.length < 6) {
+                setMessage('Password must be at least 6 characters long.', 'error');
+                submitBtn.disabled = false; return;
+            }
+            if (password !== confirmPassword) {
+                setMessage('Passwords do not match.', 'error');
+                submitBtn.disabled = false; return;
+            }
+            
+            try {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("username", "==", username));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    setMessage('This username is already taken. Please choose another.', 'error');
+                    submitBtn.disabled = false; return;
+                }
+            } catch (error) {
+                setMessage('Could not validate username. Please try again.', 'error');
+                submitBtn.disabled = false; return;
+            }
+            
+            const finalEmail = email || `${username}_${Date.now()}@gcsureswap.io`;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, finalEmail, password);
+                const user = userCredential.user;
+                await updateProfile(user, { displayName: username });
+                await setDoc(doc(db, "users", user.uid), {
+                    username: username, email: finalEmail, balance: 0, createdAt: new Date()
+                });
+                
+                if (email) {
+                    await sendEmailVerification(user);
+                    setMessage('Registration successful! Please check your email to verify your account.', 'success');
+                } else {
+                     setMessage('Registration successful! You can now log in.', 'success');
+                }
+                
+                registerForm.reset();
+                emailFormGroup.style.display = 'none';
+                addEmailBtn.style.display = 'block';
+                setTimeout(() => toggleForms('login'), 2000);
+            } catch (error) {
+                setMessage(getFriendlyErrorMessage(error.code), 'error');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('login-identifier').value.trim();
+            const password = document.getElementById('login-password').value;
+            setMessage('', 'error');
+            let emailToLogin = identifier;
+
+            if (!identifier.includes('@')) {
+                try {
+                    const usersRef = collection(db, "users");
+                    const q = query(usersRef, where("username", "==", identifier.toLowerCase()));
+                    const querySnapshot = await getDocs(q);
+                    
+                    if (querySnapshot.empty) {
+                        setMessage(getFriendlyErrorMessage('auth/user-not-found'), 'error');
+                        return;
+                    }
+                    emailToLogin = querySnapshot.docs[0].data().email;
+                } catch (error) {
+                    setMessage('Error finding user. Please try again.', 'error');
+                    return;
+                }
+            }
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
+
+                // **THE FIX IS HERE:**
+                // We now remove the check for email verification during login.
+                // This ensures that both username-only accounts and accounts with unverified emails can log in.
+                // The prompt to verify can be added to the account page later for a better user experience.
+
+                await onNextAuth(); // Wait for state to be confirmed before redirecting
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                setMessage(getFriendlyErrorMessage(error.code), 'error');
+            }
+        });
+        
+        googleSigninBtn.addEventListener('click', async () => {
+            setMessage('', 'error');
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                const userDocRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(userDocRef);
+                if (!docSnap.exists()) {
+                    await setDoc(userDocRef, {
+                        username: user.displayName, email: user.email, balance: 0, createdAt: new Date()
+                    });
+                }
+                await onNextAuth();
+                window.location.href = 'index.html';
+            } catch (error) {
+                setMessage("Error signing in with Google. Please try again.", 'error');
+            }
+        });
+
+        function setMessage(text, type) {
+            messageEl.innerHTML = text;
+            messageEl.className = type;
+        }
+
+        function getFriendlyErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-email': return 'Please enter a valid email address.';
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential': return 'Invalid username/email or password.';
+                case 'auth/email-already-in-use': return 'This email is already registered. Please log in.';
+                case 'auth/weak-password': return 'Password should be at least 6 characters long.';
+                default: return 'An unexpected error occurred. Please try again.';
+            }
+        }
+    </script>
+    <script>
+        // --- Bubble Animation Script ---
+        const canvas = document.getElementById('bubble-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let bubbles = [];
+        class Bubble {
+            constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.radius = Math.random() * 7 + 2; this.speedY = Math.random() * 1 + 0.5; this.speedX = (Math.random() - 0.5) * 0.5; this.color = `rgba(40, 167, 69, ${Math.random() * 0.15 + 0.05})`; }
+            update() { this.y -= this.speedY; this.x += this.speedX; if (this.y < -this.radius) { this.y = canvas.height + this.radius; this.x = Math.random() * canvas.width; } }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); }
+        }
+        function handleBubbles() { if (bubbles.length < 40) { bubbles.push(new Bubble()); } for (let i = bubbles.length - 1; i >= 0; i--) { bubbles[i].update(); bubbles[i].draw(); } }
+        function animateBubbles() { ctx.clearRect(0, 0, canvas.width, canvas.height); handleBubbles(); requestAnimationFrame(animateBubbles); }
+        animateBubbles();
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; bubbles = []; });
+    </script>
+</body>
+</html>
